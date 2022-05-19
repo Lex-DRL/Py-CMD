@@ -5,7 +5,6 @@ from argparse import ArgumentParser
 from os import stat, utime
 from sys import platform
 
-
 is_win = platform.startswith('win')
 
 
@@ -37,9 +36,9 @@ def main(*args):
 	if is_win and not follow:
 		win_nofollow_msg = "[no --nofollow on Windows] "
 		follow = True
-	
+
 	res = copy_timestamp(source, target, follow_symlinks=follow)
-	
+
 	if out_args.verbose:
 		symlinks = '' if follow else ' [nofollow]'
 		print(f"{win_nofollow_msg}Timestamps copied{symlinks}: {source} -> {target}")
@@ -48,4 +47,6 @@ def main(*args):
 
 if __name__ == '__main__':
 	from sys import argv
+	# with open(r"P:\1-Scripts\_Python\Py-CMD\qqq.log", 'wt', newline='\n') as f:
+	# 	f.writelines(f"{x}\n" for x in argv)
 	main(*argv[1:])
