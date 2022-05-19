@@ -20,8 +20,8 @@ def main(*args):
 	parser.add_argument("source_file", help="file to copy timestamp from")
 	parser.add_argument("target_file", help="file to copy timestamp to")
 	parser.add_argument(
-		"-n", "--nofollow", help="don't follow symlinks (followed by default; unix-only)",
-		action='store_false', dest='follow',
+		"-n", "--nofollow", help="[unix-only] don't follow symlinks (followed by default)",
+		dest='follow', action='store_false',
 	)
 	parser.add_argument(
 		"-v", "--verbose", help="print what's being done",
