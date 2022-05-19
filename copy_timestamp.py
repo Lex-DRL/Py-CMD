@@ -2,17 +2,34 @@
 # encoding: utf-8
 
 from argparse import ArgumentParser
+from functools import partial
 from os import stat, utime
 from sys import platform
+
 
 is_win = platform.startswith('win')
 
 
-def copy_timestamp(source, target, follow_symlinks=True, ):
+def __copy_timestamp_platform_decorator(f):
+	"""Makes function conditionless and yet platform-specific. To avoid recursion, it's actually easier with decorator."""
 	if is_win:
-		follow_symlinks = True
+		# for windows - ignore 'follow_symlinks' argument
+		return partial(f, follow_symlinks=True, )
+	# for unix - use the function as is
+	return f
+
+
+@__copy_timestamp_platform_decorator
+def copy_timestamp(source, target, follow_symlinks=True, ):
+	"""
+	Copy timestamps from one file to another. follow_symlinks arg is ignored on Windows.
+	
+	Return the applied timestamp (nanoseconds precision, as returned by os.stat).
+	"""
 	src_stat = stat(source, follow_symlinks=follow_symlinks)
-	return utime(target, ns=(src_stat.st_atime_ns, src_stat.st_mtime_ns), follow_symlinks=follow_symlinks)
+	timestamp_ns = (src_stat.st_atime_ns, src_stat.st_mtime_ns)
+	utime(target, ns=timestamp_ns, follow_symlinks=follow_symlinks, )
+	return timestamp_ns
 
 
 def main(*args):
