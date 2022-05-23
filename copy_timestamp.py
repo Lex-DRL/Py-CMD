@@ -2,7 +2,6 @@
 # encoding: utf-8
 
 from argparse import ArgumentParser
-from functools import partial
 from os import stat, utime
 from sys import platform
 
@@ -12,11 +11,14 @@ is_win = platform.startswith('win')
 
 def __copy_timestamp_platform_decorator(f):
 	"""Makes function conditionless and yet platform-specific. To avoid recursion, it's actually easier with decorator."""
-	if is_win:
-		# for windows - ignore 'follow_symlinks' argument
-		return partial(f, follow_symlinks=True, )
-	# for unix - use the function as is
-	return f
+	if not is_win:
+		# for unix - use the function as is
+		return f
+	
+	# for windows - completely ignore 'follow_symlinks' argument
+	def _wrapper(source, target, follow_symlinks=True, ):
+		return f(source, target, follow_symlinks=True, )
+	return _wrapper
 
 
 @__copy_timestamp_platform_decorator
