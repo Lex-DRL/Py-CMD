@@ -9,14 +9,16 @@ The main program:
 https://github.com/yt-dlp/yt-dlp
 """
 
-__version__ = '1.0.1'
+__version__ = '1.0.2'
 __author__ = 'Lex Darlog (DRL)'
 
 from itertools import chain
+import os
 from pathlib import Path
 from shlex import quote
 import shutil
 import subprocess
+import sys
 
 from typing import *
 
@@ -30,6 +32,15 @@ EXTRA_ARGS = [
 	"--merge-output-format", "mp4",
 	# "--cookies-from-browser", "firefox:DRL"  # DRL: doesn't work, throws error # format: "BROWSER[+KEYRING][:PROFILE]"
 ]
+PATH_EXTEND = [
+	# if you don't want to put `ffmpeg` and `yt-dlp` directories to system `PATH` variable, you can set them here.
+	# You need to put DIRECTORIES of these programs, not full paths to them.
+	# Each path as a separate string (dont forget comma at the end). Example:
+	# 'C:/Users/MyUserName/Documents',
+
+	'',
+]
+
 
 
 # -----------------------------------------------------------------------------
@@ -60,9 +71,11 @@ def exit_error(msg: str):
 
 
 def exit_binary_missing(nice_name: str, binary: str, url: str = None):
-	url_postfix = f" or download here:\n{url}\n" if url else ''
+	url_postfix = f"\n\nIf the binary is missing, you can download it here:\n{url}\n" if url else ''
 	return exit_error(
-		f"{nice_name} not found: {binary}\nYou might need to add it's directory to `PATH` environment variable{url_postfix}"
+		f"{nice_name} not found: {binary}\n"
+		f"You might need to add it's directory to system `PATH` environment variable "
+		f"or to `PATH_EXTEND` variable in the script.{url_postfix}"
 	)
 
 
@@ -103,8 +116,25 @@ def append_cookies_arg(cmd: List[str]):
 	])
 
 
+def update_sys_path(*paths: str):
+	"""Sync `os.environ['PATH']` and `sys.path` + append given paths to both"""
+
+	new_paths = list(sys.path)
+	sys_paths_set = set(new_paths)
+	# also add those which are somehow defined in `os.environ['PATH']` but not in `sys.path`
+	new_paths.extend(x for x in os.environ['PATH'].split(os.pathsep) if x not in sys_paths_set)
+	new_paths.extend(paths)
+
+	new_paths = [x for x in new_paths if x and isinstance(x, str)]
+
+	sys.path[:] = new_paths
+	os.environ['PATH'] = os.pathsep.join(new_paths)
+
+
 def main(*args):
 	check_module_config()
+
+	update_sys_path(*PATH_EXTEND)
 
 	program_path = shutil.which(PROGRAM)
 	if not is_ok_str(program_path):
