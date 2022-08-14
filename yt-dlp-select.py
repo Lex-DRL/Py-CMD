@@ -21,6 +21,8 @@ import subprocess
 from typing import *
 
 
+# Put your system-specific config here:
+
 OUT_DIR = "E:/0-Downloads/0-YouTube"
 COOKIES_FILE = '_cookies.txt'  # empty = don't use / absolute path / path relative to `OUT_DIR`
 FORMAT_SELECTOR = "bestvideo{res_limit}[ext=mp4]+bestaudio[ext=m4a]"
@@ -137,11 +139,7 @@ def main(*args):
 	cmd.extend(EXTRA_ARGS)
 	cmd.append(video_url)
 
-	cmd_str = ' '.join(
-		quote(x)
-		# x if isinstance(x, str) and ' ' not in x else repr(x)
-		for x in cmd
-	)
+	cmd_str = ' '.join(quote(x) for x in cmd)
 	print(f"\nStarting:\n{cmd_str}\n")
 	res = subprocess.call(cmd)
 
