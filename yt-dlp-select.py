@@ -81,8 +81,7 @@ def check_module_config():
 			exit_error(f"Incorrect extra arg: `{extra_arg}`")
 
 
-def cookies_warning(path):
-	msg = "Cookies file not configured." if not path else f"Cookies file is missing: {path}"
+def cookies_warning(msg: str):
 	print(
 		f"\n\t▼ WARNING ▼\n{msg}\n"
 		f"Some videos might fail downloading. Instructions on how to configure cookies:\n{COOKIES_HELP_URL}"
@@ -92,12 +91,12 @@ def cookies_warning(path):
 def append_cookies_arg(cmd: List[str]):
 	file_subpath = COOKIES_FILE if COOKIES_FILE is None or isinstance(COOKIES_FILE, str) else str(COOKIES_FILE)
 	if not file_subpath:
-		return cookies_warning(file_subpath)
+		return cookies_warning("Cookies file is not configured.")
 
 	file_path = Path(OUT_DIR) / COOKIES_FILE
 	file_path_str = str(file_path.absolute())
 	if not file_path.is_file():
-		return cookies_warning(file_path_str)
+		return cookies_warning(f"Cookies file is missing: {file_path_str}")
 
 	cmd.extend([
 		'--cookies', file_path_str
