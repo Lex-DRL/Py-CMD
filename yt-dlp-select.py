@@ -9,7 +9,7 @@ The main program:
 https://github.com/yt-dlp/yt-dlp
 """
 
-__version__ = '1.0.2'
+__version__ = '1.0.3'
 __author__ = 'Lex Darlog (DRL)'
 
 from itertools import chain
@@ -28,9 +28,14 @@ from typing import *
 OUT_DIR = "E:/0-Downloads/0-YouTube"
 COOKIES_FILE = '_cookies.txt'  # empty = don't use / absolute path / path relative to `OUT_DIR`
 FORMAT_SELECTOR = "bestvideo{res_limit}[ext=mp4]+bestaudio[ext=m4a]"
-EXTRA_ARGS = [
+EXTRA_ARGS_PRE = [
+	"-U",
+]
+EXTRA_ARGS_POST = [
 	"--merge-output-format", "mp4",
 	# "--cookies-from-browser", "firefox:DRL"  # DRL: doesn't work, throws error # format: "BROWSER[+KEYRING][:PROFILE]"
+	"--sponsorblock-mark", "all",
+	"--sponsorblock-remove", "sponsor,interaction",
 ]
 PATH_EXTEND = [
 	# if you don't want to put `ffmpeg` and `yt-dlp` directories to system `PATH` variable, you can set them here.
@@ -88,9 +93,12 @@ def check_module_config():
 		if not is_ok_str(val):
 			exit_error(f"{nice_name} is not specified. Define the proper value for `{var_name}`")
 
-	for extra_arg in EXTRA_ARGS:
+	for extra_arg in EXTRA_ARGS_PRE:
 		if extra_arg is None or (isinstance(extra_arg, str) and not extra_arg):
-			exit_error(f"Incorrect extra arg: `{extra_arg}`")
+			exit_error(f"Incorrect prefix extra arg: `{extra_arg}`")
+	for extra_arg in EXTRA_ARGS_POST:
+		if extra_arg is None or (isinstance(extra_arg, str) and not extra_arg):
+			exit_error(f"Incorrect suffix extra arg: `{extra_arg}`")
 
 
 def cookies_warning(msg: str):
@@ -156,27 +164,27 @@ def main(*args):
 
 	format_selector = FORMAT_SELECTOR.format(res_limit=RES_LIMIT.get(res_arg, RES_BEST))
 
-	cmd = [
-		program_path,
+	cmd = [program_path, ]
+	cmd.extend(EXTRA_ARGS_PRE)
+	cmd.extend([
 		'-P', OUT_DIR,
 		'-P', "temp:",
 		'-o', NAME_FORMAT,
 		'-f', format_selector,
-	]
+	])
 	append_cookies_arg(cmd)
-	cmd.extend(EXTRA_ARGS)
+	cmd.extend(EXTRA_ARGS_POST)
 	cmd.append(video_url)
 
 	cmd_str = ' '.join(quote(x) for x in cmd)
 	print(f"\nStarting:\n{cmd_str}\n")
-	res = subprocess.call(cmd)
-
-	input("Done!")
-
-	exit(res)
+	return subprocess.call(cmd)
 
 
 if __name__ == '__main__':
 	from sys import argv
 
-	main(*argv[1:])
+	res = main(*argv[1:])
+	input("Done!")
+
+	exit(res)
